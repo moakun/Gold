@@ -150,4 +150,4 @@ five core principles, and complexity that violates the spirit of a principle MUS
 writing or removed. Before any transition from paper to live trading, this constitution MUST be
 re-read in full and the risk envelope reconfirmed by the operator.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-14 | **Last Amended**: 2026-08-14
+**Version**: 1.0.0 | **Ratified**: 2026-08-21 | **Last Amended**: 2026-08-21

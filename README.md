@@ -1,7 +1,6 @@
 # Gold Trading Bot
 
-A gold-only trading bot that explains every decision it makes — and, in doing so, teaches the
-trading principles behind them.
+A gold-only trading bot that explains every decision it makes — and, in doing so, teaches the trading principles behind them.
 
 The project has two deliverables of equal weight: a strategy that trades gold under strict risk
 rules, and an operator who understands why it does what it does. A black box that prints a profit
