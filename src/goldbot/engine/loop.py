@@ -167,22 +167,11 @@ class DecisionLoop:
             # --- 2. did today take us out? ---------------------------------
             if position is not None and entry_fill is not None:
                 signal = self.broker.check_exit(position, bar, target)
-                if pending_exit and signal is None:
-                    signal_price = bar.open
-                    exit_fill = self.broker.submit_exit(
-                        position,
-                        price=signal_price,
-                        shares=position.shares,
-                        at=bar.start,
-                        decision_id=position.opening_decision_id,
-                    )
-                    cash += exit_fill.gross_value - exit_fill.costs.total
-                    result.trades.append(
-                        self._close(position, entry_fill, exit_fill, ExitReason.RULE)
-                    )
-                    realised_today += result.trades[-1].result_currency
-                    position, entry_fill, target = None, None, None
-                elif signal is not None:
+                exit_fill = None
+                reason = None
+                if signal is not None:
+                    # A stop or target beats a pending rule exit: the market
+                    # reached the level before the open order could act.
                     exit_fill = self.broker.submit_exit(
                         position,
                         price=signal.price,
@@ -191,11 +180,22 @@ class DecisionLoop:
                         decision_id=position.opening_decision_id,
                         intended=position.stop,
                     )
-                    cash += exit_fill.gross_value - exit_fill.costs.total
-                    result.trades.append(
-                        self._close(position, entry_fill, exit_fill, signal.reason)
+                    reason = signal.reason
+                elif pending_exit:
+                    exit_fill = self.broker.submit_exit(
+                        position,
+                        price=bar.open,
+                        shares=position.shares,
+                        at=bar.start,
+                        decision_id=position.opening_decision_id,
                     )
-                    realised_today += result.trades[-1].result_currency
+                    reason = ExitReason.RULE
+
+                if exit_fill is not None and reason is not None:
+                    cash += exit_fill.gross_value - exit_fill.costs.total
+                    realised_today += self._finalise(
+                        result, position, entry_fill, exit_fill, reason
+                    )
                     position, entry_fill, target = None, None, None
                 pending_exit = False
 
@@ -252,15 +252,32 @@ class DecisionLoop:
                 decision_id=position.opening_decision_id,
             )
             cash += exit_fill.gross_value - exit_fill.costs.total
-            result.trades.append(
-                self._close(position, entry_fill, exit_fill, ExitReason.END_OF_DATA)
-            )
+            self._finalise(result, position, entry_fill, exit_fill, ExitReason.END_OF_DATA)
 
         result.ending_equity = cash
-        for moment, rejection in ((d, r) for d, r in result.rejections):
-            if self.store is not None:
-                self.store.record_violation(self.run_id, moment, rejection)
         return result
+
+    def _finalise(
+        self,
+        result: RunResult,
+        position: Position,
+        entry_fill: Fill,
+        exit_fill: Fill,
+        reason: ExitReason,
+    ) -> Decimal:
+        """Close a trade, persist it, and return its realised result."""
+        trade = self._close(position, entry_fill, exit_fill, reason)
+        result.trades.append(trade)
+        if self.store is not None:
+            self.store.record_fill(exit_fill, exit_fill.order_id)
+            self.store.record_trade(
+                self.run_id,
+                trade,
+                trade_id=f"{self.run_id}:trade-{len(result.trades):04d}",
+                entry_fill_id=entry_fill.order_id,
+                exit_fill_id=exit_fill.order_id,
+            )
+        return trade.result_currency
 
     # -- decision helpers -------------------------------------------------
 

@@ -1,0 +1,13 @@
+{
+  "cadence": "daily",
+  "data_path": "data/raw/GLD-daily-2024-01-02-2025-07-11.csv",
+  "fetched_at": "2026-08-21T12:00:00+00:00",
+  "notes": "Deterministic fixture data for smoke testing.",
+  "range_from": "2024-01-02",
+  "range_to": "2025-07-14",
+  "row_count": 400,
+  "sha256": "705e424eef0f82418c4f4aa5d831f7397f99918511bab3dc7f240135cbdbda1b",
+  "snapshot_id": "GLD-daily-2024-01-02-2025-07-14",
+  "source": "fixture",
+  "symbol": "GLD"
+}

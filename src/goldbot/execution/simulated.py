@@ -37,13 +37,16 @@ class ExitSignal:
 class SimulatedBroker:
     """Turns an authorization into a fill, and a bar into an exit."""
 
-    def __init__(self, instrument: Instrument) -> None:
+    def __init__(self, instrument: Instrument, run_id: str = "run") -> None:
         self.instrument = instrument
+        #: Ids carry the run id so several runs can share one audit store
+        #: without colliding, while staying deterministic within a run.
+        self.run_id = run_id
         self._sequence = 0
 
     def _next_id(self, prefix: str) -> str:
         self._sequence += 1
-        return f"{prefix}-{self._sequence:06d}"
+        return f"{self.run_id}:{prefix}-{self._sequence:06d}"
 
     def _costs(self, price: Decimal, shares: int) -> Costs:
         notional = price * shares

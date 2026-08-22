@@ -82,9 +82,16 @@ CREATE TABLE IF NOT EXISTS orders (
     simulated        INTEGER NOT NULL DEFAULT 1 CHECK (simulated = 1)
 );
 
+-- `order_id` is deliberately not a foreign key into `orders`.
+--
+-- Entry fills have an authorising order, because taking on risk must pass the
+-- gate. Exit fills do not: closing a position sheds risk, and forcing an exit
+-- through a gate that can refuse it would mean the system could be trapped in
+-- a trade by its own risk controls. Exits are tied to the opening decision
+-- through `decision_id` instead.
 CREATE TABLE IF NOT EXISTS fills (
     fill_id              TEXT PRIMARY KEY,
-    order_id             TEXT NOT NULL REFERENCES orders(order_id),
+    order_id             TEXT NOT NULL,
     decision_id          TEXT NOT NULL,
     symbol               TEXT NOT NULL,
     side                 TEXT NOT NULL,
