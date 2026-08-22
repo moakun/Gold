@@ -1,0 +1,41 @@
+# A deliberately invalid configuration, used to prove the guards fire.
+#
+# Quickstart Scenario 4 runs this and expects exit code 4 plus one `violations`
+# row per rejected attempt. A risk control that has never been observed
+# refusing anything has not been tested.
+#
+# What is wrong here, on purpose:
+#   * `run.symbol` is SPY, which is not gold        -> ALLOW_LIST rejection
+#   * `max_risk_per_trade` is 25%                   -> oversized positions
+#   * the stop multiple is tiny, so sizing wants
+#     far more shares than the cash allows          -> INSUFFICIENT_CASH
+
+[run]
+symbol = "SPY"
+cadence = "daily"
+initial_equity = "10000.00"
+
+[instruments.GLD]
+name = "Gold ETF (physically backed)"
+calendar = "XNYS"
+expense_ratio = "0.0040"
+half_spread_bps = "1.0"
+slippage_bps = "2.0"
+
+[risk]
+max_risk_per_trade = "0.250"
+max_daily_loss = "0.300"
+max_concurrent_positions = 1
+max_leverage = "2.0"
+
+[strategy]
+trend_lookback = 100
+momentum_lookback = 20
+atr_lookback = 14
+atr_stop_multiple = "0.05"
+reward_risk_target = "2.0"
+min_history = 100
+
+[events]
+policy = "stand_aside"
+blackout_dates = []
