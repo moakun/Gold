@@ -69,12 +69,12 @@ through explicit phases rather than jumping to code.
 
 - [x] **Constitution** — five binding principles ratified at v1.0.0
 - [x] **Specify** — feature 001 specified and validated, 15/15 quality checks passing
-- [ ] **Plan** — technical design, stack, and architecture
-- [ ] **Tasks** — dependency-ordered implementation breakdown
+- [x] **Plan** — Python 3.11 + uv, bespoke event-driven engine, no brokerage SDK at all
+- [x] **Tasks** — 107 tasks across 6 phases, organised by user story
 - [ ] **Implement** — build
 
-The next step is `/speckit-plan`, which chooses the stack, the data source, and the broker
-integration for paper trading.
+The next step is `/speckit-implement`. The MVP is User Story 1: an explained backtest, which needs
+Phases 1 through 3 (tasks T001–T063).
 
 ## Repository layout
 
@@ -86,6 +86,12 @@ integration for paper trading.
 specs/
   001-explainable-gold-bot/
     spec.md                   Feature specification: 38 requirements, 3 user stories
+    plan.md                   Architecture, stack, and constitution gate checks
+    research.md               12 technical decisions and what was rejected
+    data-model.md             Types, invariants, and state machines
+    contracts/                CLI surface, internal interfaces, durable records
+    quickstart.md             7 validation scenarios mapped to requirements
+    tasks.md                  107 implementation tasks, dependency-ordered
     checklists/requirements.md  Quality validation record and decision log
 .claude/skills/               Spec Kit slash commands
 ```
