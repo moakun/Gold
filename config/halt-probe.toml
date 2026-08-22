@@ -1,0 +1,39 @@
+# Probe 2 of 2: does the daily loss halt fire, and does it stay fired?
+#
+# A hair-trigger daily loss limit of 0.1%. The first losing trade trips it,
+# after which every subsequent entry attempt is refused by the risk gate and
+# recorded in the `violations` table.
+#
+# Expected: a HALTED run with halt rows and one violation row per refused
+# entry. An empty violations table would mean the guards were never exercised,
+# which is exactly what these probes exist to rule out.
+
+[run]
+symbol = "GLD"
+cadence = "daily"
+initial_equity = "100000.00"
+
+[instruments.GLD]
+name = "Gold ETF (physically backed)"
+calendar = "XNYS"
+expense_ratio = "0.0040"
+half_spread_bps = "1.0"
+slippage_bps = "2.0"
+
+[risk]
+max_risk_per_trade = "0.001"
+max_daily_loss = "0.001"
+max_concurrent_positions = 1
+max_leverage = "2.0"
+
+[strategy]
+trend_lookback = 100
+momentum_lookback = 20
+atr_lookback = 14
+atr_stop_multiple = "2.0"
+reward_risk_target = "2.0"
+min_history = 100
+
+[events]
+policy = "stand_aside"
+blackout_dates = []

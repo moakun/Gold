@@ -1,19 +1,16 @@
-# A deliberately invalid configuration, used to prove the guards fire.
+# Probe 1 of 2: does the allow-list actually fail closed?
 #
-# Quickstart Scenario 4 runs this and expects exit code 4 plus one `violations`
-# row per rejected attempt. A risk control that has never been observed
-# refusing anything has not been tested.
+# `run.symbol` is SPY, which is not gold and is not in the instruments table.
+# Expected: exit code 4 before any run is recorded — Principle II refuses at
+# the boundary rather than part-way through.
 #
-# What is wrong here, on purpose:
-#   * `run.symbol` is SPY, which is not gold        -> ALLOW_LIST rejection
-#   * `max_risk_per_trade` is 25%                   -> oversized positions
-#   * the stop multiple is tiny, so sizing wants
-#     far more shares than the cash allows          -> INSUFFICIENT_CASH
+# See config/halt-probe.toml for the probe that exercises the risk gate
+# during a run.
 
 [run]
 symbol = "SPY"
 cadence = "daily"
-initial_equity = "10000.00"
+initial_equity = "100000.00"
 
 [instruments.GLD]
 name = "Gold ETF (physically backed)"
@@ -23,8 +20,8 @@ half_spread_bps = "1.0"
 slippage_bps = "2.0"
 
 [risk]
-max_risk_per_trade = "0.250"
-max_daily_loss = "0.300"
+max_risk_per_trade = "0.010"
+max_daily_loss = "0.030"
 max_concurrent_positions = 1
 max_leverage = "2.0"
 
@@ -32,7 +29,7 @@ max_leverage = "2.0"
 trend_lookback = 100
 momentum_lookback = 20
 atr_lookback = 14
-atr_stop_multiple = "0.05"
+atr_stop_multiple = "2.0"
 reward_risk_target = "2.0"
 min_history = 100
 

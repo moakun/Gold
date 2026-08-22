@@ -49,14 +49,22 @@ def explain(decision: Decision) -> str:
         assert decision.blocking_verdict is not None
         blocker = decision.blocking_verdict
         lead = f"No trade. {blocker.statement}"
-        if passed:
+
+        # How close this was matters for learning, so the wording distinguishes
+        # a single missing condition from a setup that was nowhere near.
+        if len(failed) == 1 and passed:
             satisfied = ", ".join(v.rule_id for v in passed)
             lead += (
-                f"\n\nThe rest of the setup was in place ({satisfied}), so this was a near "
-                "miss rather than an absent signal:"
+                f"\n\nEverything else was in place ({satisfied}), so this was a near miss "
+                "rather than an absent signal:"
+            )
+        elif passed:
+            lead += (
+                f"\n\n{len(failed)} of {len(decision.verdicts)} conditions were missing, so "
+                "this was not close:"
             )
         else:
-            lead += "\n\nNothing else was in place either:"
+            lead += "\n\nNothing was in place:"
         return f"{lead}\n{render_verdicts(decision.verdicts)}"
 
     if decision.action is Action.EXIT:

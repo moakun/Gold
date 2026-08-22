@@ -41,6 +41,10 @@ def backtest(
     backtest against changed data is not the backtest the manifest describes.
     """
     config = load_config(config_path)
+    # Check the allow-list before anything is recorded. Failing here rather
+    # than part-way through leaves no orphan run row for a symbol that was
+    # never tradable in the first place.
+    config.instrument
     warn_small_account(config.initial_equity)
 
     manifest = find_manifest(DATA_SNAPSHOTS, snapshot)

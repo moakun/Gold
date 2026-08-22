@@ -42,28 +42,33 @@ class DataFeed(Protocol):
     def snapshot_digest(self) -> str | None: ...
 
 
-def detect_gaps(bars: tuple[Bar, ...], max_normal_gap_days: int = 4) -> tuple[DataGap, ...]:
+def detect_gaps(bars: tuple[Bar, ...], min_missing_to_report: int = 2) -> tuple[DataGap, ...]:
     """Find stretches of missing sessions.
 
-    Four days is the normal maximum for a long weekend with a holiday attached.
-    Anything longer is reported. This is heuristic on purpose — the exchange
-    calendar knows the truth, but a feed should be able to flag suspicious data
-    without one.
+    Counts absent weekdays between consecutive bars. One missing weekday is an
+    ordinary market holiday and is not reported; two or more in a row is
+    unusual enough to surface, because the alternative — a silently short
+    dataset — produces a backtest with invisible holes in it.
+
+    Heuristic on purpose. The exchange calendar knows the truth about holidays,
+    but a feed should be able to flag suspicious data without one.
     """
     gaps: list[DataGap] = []
     for previous, current in zip(bars, bars[1:], strict=False):
         delta = (current.end.date() - previous.end.date()).days
-        if delta > max_normal_gap_days:
-            business_days = sum(
-                1
-                for offset in range(1, delta)
-                if (previous.end.date() + timedelta(days=offset)).weekday() < 5
-            )
+        if delta <= 1:
+            continue
+        missing = sum(
+            1
+            for offset in range(1, delta)
+            if (previous.end.date() + timedelta(days=offset)).weekday() < 5
+        )
+        if missing >= min_missing_to_report:
             gaps.append(
                 DataGap(
                     after=previous.end.date(),
                     before=current.end.date(),
-                    missing_sessions=business_days,
+                    missing_sessions=missing,
                 )
             )
     return tuple(gaps)

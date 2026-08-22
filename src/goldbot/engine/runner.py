@@ -7,7 +7,6 @@ judgement lives in the loop, the gate, and the rules.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 
 from goldbot.config import Config
@@ -16,6 +15,7 @@ from goldbot.execution.simulated import SimulatedBroker
 from goldbot.journal import report as report_module
 from goldbot.journal.render import markdown_journal
 from goldbot.journal.store import AuditStore
+from goldbot.engine.clock import Clock, LiveClock
 from goldbot.engine.loop import DecisionLoop, RunResult
 from goldbot.risk.gate import RiskGate
 
@@ -44,8 +44,13 @@ def execute(
     mode: str = "BACKTEST",
     kill_latch: Path | None = None,
     halt_resumes_next_session: bool = True,
+    clock: Clock | None = None,
 ) -> RunArtifacts:
-    started = datetime.now(UTC)
+    # Audit stamps need real time, but only engine/clock.py is allowed to read
+    # it. Injecting the clock keeps that rule literally true rather than
+    # carving out an exemption for orchestration code.
+    clock = clock or LiveClock()
+    started = clock.now()
     store.start_run(
         run_id=run_id,
         mode=mode,
@@ -75,7 +80,7 @@ def execute(
     try:
         result = loop.run()
     except Exception:
-        store.append_run_event(run_id, datetime.now(UTC), "ABORTED", note="unhandled error")
+        store.append_run_event(run_id, clock.now(), "ABORTED", note="unhandled error")
         raise
 
     # Rejections the gate accumulated are violations worth keeping: an empty
@@ -111,7 +116,7 @@ def execute(
 
     status = "HALTED" if result.halts else "COMPLETE"
     store.append_run_event(
-        run_id, datetime.now(UTC), status, bars_evaluated=result.bars_evaluated
+        run_id, clock.now(), status, bars_evaluated=result.bars_evaluated
     )
 
     return RunArtifacts(
