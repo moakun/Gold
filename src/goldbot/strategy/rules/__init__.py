@@ -22,11 +22,23 @@ ALL_RULE_CLASSES = (
     TrendExit,
 )
 
-ALL_PRINCIPLES = tuple(sorted({cls.principle for cls in ALL_RULE_CLASSES}))
+#: Principles the risk layer applies rather than the rule set. They reach the
+#: journal through refusals — "no trade, because sizing this would breach the
+#: limit" is a decision with reasoning, so it names a principle and therefore
+#: needs a lesson like any other.
+RISK_PRINCIPLES = (
+    "capital-preservation",
+    "position-sizing",
+)
+
+ALL_PRINCIPLES = tuple(
+    sorted({cls.principle for cls in ALL_RULE_CLASSES} | set(RISK_PRINCIPLES))
+)
 
 __all__ = [
     "ALL_PRINCIPLES",
     "ALL_RULE_CLASSES",
+    "RISK_PRINCIPLES",
     "AtrStop",
     "EntryTrigger",
     "EventBlackout",
