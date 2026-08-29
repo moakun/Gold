@@ -98,7 +98,7 @@ def build_rows(count: int = 400) -> list[dict[str, str]]:
     return rows
 
 
-def build_gap_stop_rows(count: int = 130) -> list[dict[str, str]]:
+def build_gap_stop_rows(count: int = 320) -> list[dict[str, str]]:
     """A series engineered to produce one catastrophic gap through a stop.
 
     The long fixture never produces a stop exit, because the trailing exit rule
@@ -109,10 +109,15 @@ def build_gap_stop_rows(count: int = 130) -> list[dict[str, str]]:
                       stop sits close to price
         bar     100   entry fills at the open
         bar     101   the market reopens 30 points lower, far below the stop
+        bars 102-319  a strong recovery, so fresh setups appear afterwards
 
     The resulting loss is roughly 20x the planned risk. That is not a
     pathological invention — it is what an overnight macro shock does to an
     instrument that is shut seventeen hours a day.
+
+    The recovery tail matters for a second reason: with a sticky halt (paper
+    semantics), every later setup is refused by the risk gate, which is how
+    the `violations` table gets populated on purpose rather than by accident.
     """
     noise = Noise(seed=99001)
     days = sessions(date(2024, 1, 2), count)
@@ -121,8 +126,9 @@ def build_gap_stop_rows(count: int = 130) -> list[dict[str, str]]:
 
     for i, day in enumerate(days):
         gap = -30.0 if i == 101 else 0.0
+        drift = 0.50 if i <= 101 else 1.40
         open_ = close + gap + noise.signed(0.12)
-        close = open_ + 0.50 + noise.signed(0.18)
+        close = open_ + drift + noise.signed(0.18)
         high = max(open_, close) + abs(noise.signed(0.20))
         low = min(open_, close) - abs(noise.signed(0.20))
         rows.append(
