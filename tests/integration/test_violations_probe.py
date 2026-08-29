@@ -58,83 +58,112 @@ def test_the_allowlist_probe_exits_with_code_four() -> None:
     )
 
 
-def test_the_halt_probe_trips_the_daily_loss_limit(tmp_path: Path) -> None:
-    manifest = pin_fixture(tmp_path)
+def _run_halt_probe(tmp_path: Path, *, sticky: bool):  # type: ignore[no-untyped-def]
+    """Run the hair-trigger config over the gap fixture.
+
+    `sticky=True` is paper semantics: the halt requires an explicit resume.
+    `sticky=False` is backtest semantics: it lifts at the next session, which
+    stands in for the operator returning the following morning (T072).
+    """
+    manifest = pin_fixture(tmp_path, fixture="gld_gap_stop.csv")
     config = load_config(HALT_PROBE)
     bars = load_bars(Path(manifest.data_path), config.symbol)
 
-    with AuditStore(tmp_path / "audit.db") as store:
-        artifacts = execute(
-            config=config,
-            bars=bars,
-            snapshot_id=manifest.snapshot_id,
-            snapshot_digest=manifest.sha256,
-            code_version="test",
-            fingerprint="print",
-            run_id="halt-probe",
-            out_dir=tmp_path / "out",
-            store=store,
-        )
-        halts = store.halts_for_run("halt-probe")
-        violations = store.violations_for_run("halt-probe")
-        status = store.run_status("halt-probe")
+    store = AuditStore(tmp_path / "audit.db")
+    artifacts = execute(
+        config=config,
+        bars=bars,
+        snapshot_id=manifest.snapshot_id,
+        snapshot_digest=manifest.sha256,
+        code_version="test",
+        fingerprint="print",
+        run_id="halt-probe",
+        out_dir=tmp_path / "out",
+        store=store,
+        halt_resumes_next_session=not sticky,
+    )
+    return artifacts, store
 
-    assert artifacts.result.halts, "a 0.1% daily limit should trip on the first loss"
-    assert halts, "the halt must be recorded, not just acted on"
-    assert status == "HALTED"
-    assert violations, "entries refused while halted must appear as violations"
-    assert any(v["kind"] == "DAILY_LOSS_HALT" for v in violations)
+
+def test_the_halt_probe_trips_the_daily_loss_limit(tmp_path: Path) -> None:
+    artifacts, store = _run_halt_probe(tmp_path, sticky=False)
+    try:
+        assert artifacts.result.halts, "a gap 20x the planned risk must trip a 0.1% daily limit"
+        assert store.halts_for_run("halt-probe"), "the halt must be recorded, not just acted on"
+        assert store.run_status("halt-probe") == "HALTED"
+    finally:
+        store.close()
+
+
+def test_the_gap_through_the_stop_is_recorded_as_a_risk_overrun(tmp_path: Path) -> None:
+    """The whole reason this fixture exists: stops are intentions, not guarantees."""
+    from goldbot.domain.position import ExitReason
+
+    artifacts, store = _run_halt_probe(tmp_path, sticky=False)
+    try:
+        gapped = [
+            t for t in artifacts.result.trades if t.exit_reason is ExitReason.GAP_THROUGH_STOP
+        ]
+        assert gapped, "the fixture gaps 30 points below the stop; that must show up as one"
+        trade = gapped[0]
+        assert trade.risk_overrun > 0
+        assert trade.result_r < -5, "a 30-point gap on a ~1.5-point stop is far worse than -1R"
+        assert artifacts.metrics.risk_overrun_count >= 1
+        assert "Trades over plan" in artifacts.report_path.read_text(encoding="utf-8")
+    finally:
+        store.close()
+
+
+def test_a_sticky_halt_refuses_every_later_entry(tmp_path: Path) -> None:
+    """Paper semantics: the halt does not clear itself overnight (FR-014)."""
+    artifacts, store = _run_halt_probe(tmp_path, sticky=True)
+    try:
+        violations = store.violations_for_run("halt-probe")
+        assert violations, "entries refused while halted must appear as violations"
+        assert {v["kind"] for v in violations} == {"HALTED"}
+        assert len(artifacts.result.trades) == 1, (
+            "only the trade that caused the halt should exist; the rest were refused"
+        )
+    finally:
+        store.close()
+
+
+def test_a_resuming_halt_lets_the_run_continue(tmp_path: Path) -> None:
+    """Backtest semantics, and the contrast that makes the difference visible."""
+    artifacts, store = _run_halt_probe(tmp_path, sticky=False)
+    try:
+        assert len(artifacts.result.trades) > 1, (
+            "with the halt lifting each session the run should continue trading"
+        )
+        assert not store.violations_for_run("halt-probe")
+    finally:
+        store.close()
 
 
 def test_every_recorded_violation_explains_itself(tmp_path: Path) -> None:
     """A refused trade is a teaching moment, not an error code."""
-    manifest = pin_fixture(tmp_path)
-    config = load_config(HALT_PROBE)
-    bars = load_bars(Path(manifest.data_path), config.symbol)
-
-    with AuditStore(tmp_path / "audit.db") as store:
-        execute(
-            config=config,
-            bars=bars,
-            snapshot_id=manifest.snapshot_id,
-            snapshot_digest=manifest.sha256,
-            code_version="test",
-            fingerprint="print",
-            run_id="halt-probe",
-            out_dir=tmp_path / "out",
-            store=store,
-        )
+    _, store = _run_halt_probe(tmp_path, sticky=True)
+    try:
         violations = store.violations_for_run("halt-probe")
-
-    for violation in violations:
-        assert len(violation["statement"].split()) >= 8, (
-            f"terse violation statement: {violation['statement']!r}"
-        )
-        assert violation["kind"].isupper()
+        assert violations
+        for violation in violations:
+            assert len(violation["statement"].split()) >= 8, (
+                f"terse violation statement: {violation['statement']!r}"
+            )
+            assert violation["kind"].isupper()
+    finally:
+        store.close()
 
 
 def test_a_halted_run_still_explains_every_bar(tmp_path: Path) -> None:
     """Halting stops trading, not journalling. Those days had reasoning too."""
-    manifest = pin_fixture(tmp_path)
-    config = load_config(HALT_PROBE)
-    bars = load_bars(Path(manifest.data_path), config.symbol)
-
-    with AuditStore(tmp_path / "audit.db") as store:
-        artifacts = execute(
-            config=config,
-            bars=bars,
-            snapshot_id=manifest.snapshot_id,
-            snapshot_digest=manifest.sha256,
-            code_version="test",
-            fingerprint="print",
-            run_id="halt-probe",
-            out_dir=tmp_path / "out",
-            store=store,
-        )
-
-    assert len(artifacts.result.decisions) == len(bars)
-    for decision in artifacts.result.decisions:
-        assert decision.explanation.strip()
+    artifacts, store = _run_halt_probe(tmp_path, sticky=True)
+    try:
+        assert len(artifacts.result.decisions) == artifacts.result.bars_evaluated
+        for decision in artifacts.result.decisions:
+            assert decision.explanation.strip()
+    finally:
+        store.close()
 
 
 def test_an_oversized_risk_request_is_refused_by_the_gate(tmp_path: Path) -> None:
