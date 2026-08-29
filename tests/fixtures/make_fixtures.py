@@ -98,6 +98,46 @@ def build_rows(count: int = 400) -> list[dict[str, str]]:
     return rows
 
 
+def build_gap_stop_rows(count: int = 130) -> list[dict[str, str]]:
+    """A series engineered to produce one catastrophic gap through a stop.
+
+    The long fixture never produces a stop exit, because the trailing exit rule
+    always fires first — which is realistic, and which leaves the most
+    important failure mode untested. This series fixes that:
+
+        bars   0-99   a quiet, steady advance, so ATR stays small and the
+                      stop sits close to price
+        bar     100   entry fills at the open
+        bar     101   the market reopens 30 points lower, far below the stop
+
+    The resulting loss is roughly 20x the planned risk. That is not a
+    pathological invention — it is what an overnight macro shock does to an
+    instrument that is shut seventeen hours a day.
+    """
+    noise = Noise(seed=99001)
+    days = sessions(date(2024, 1, 2), count)
+    rows: list[dict[str, str]] = []
+    close = 200.00
+
+    for i, day in enumerate(days):
+        gap = -30.0 if i == 101 else 0.0
+        open_ = close + gap + noise.signed(0.12)
+        close = open_ + 0.50 + noise.signed(0.18)
+        high = max(open_, close) + abs(noise.signed(0.20))
+        low = min(open_, close) - abs(noise.signed(0.20))
+        rows.append(
+            {
+                "Date": day.isoformat(),
+                "Open": str(q(open_)),
+                "High": str(q(high)),
+                "Low": str(q(low)),
+                "Close": str(q(close)),
+                "Volume": str(5_000_000 + int(noise.next() * 1_000_000)),
+            }
+        )
+    return rows
+
+
 def write(path: Path, rows: list[dict[str, str]]) -> None:
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=["Date", "Open", "High", "Low", "Close", "Volume"])
@@ -111,6 +151,7 @@ def main() -> None:
 
     write(HERE / "gld_daily.csv", rows)
     write(HERE / "gld_tiny.csv", rows[:30])
+    write(HERE / "gld_gap_stop.csv", build_gap_stop_rows())
 
     # Same data with three consecutive sessions removed, so the feed's gap
     # detection has something to find.
