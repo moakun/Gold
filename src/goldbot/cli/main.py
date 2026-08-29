@@ -12,7 +12,10 @@ import typer
 from goldbot.cli import backtest as backtest_cmd
 from goldbot.cli import data as data_cmd
 from goldbot.cli import journal as journal_cmd
+from goldbot.cli import kill as kill_cmd
+from goldbot.cli import paper as paper_cmd
 from goldbot.cli import report as report_cmd
+from goldbot.cli import walkforward as walkforward_cmd
 from goldbot.cli._common import console
 
 app = typer.Typer(
@@ -26,8 +29,13 @@ app = typer.Typer(
 
 app.add_typer(data_cmd.app, name="data")
 app.add_typer(journal_cmd.app, name="journal")
+app.add_typer(paper_cmd.app, name="paper")
 app.command("backtest")(backtest_cmd.backtest)
+app.command("walkforward")(walkforward_cmd.walkforward)
+app.command("promote")(walkforward_cmd.promote)
+app.command("promotion")(walkforward_cmd.promotion_status)
 app.command("report")(report_cmd.report)
+app.command("kill")(kill_cmd.kill)
 
 
 @app.command("version")
