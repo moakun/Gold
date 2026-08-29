@@ -32,11 +32,11 @@ Single project: `src/goldbot/`, `tests/` at repository root, per plan.md.
 
 **Purpose**: Project initialization
 
-- [ ] T001 Create the directory tree from plan.md under `src/goldbot/` and `tests/` (domain, data, strategy, risk, execution, engine, journal, lessons, cli; tests/unit, tests/integration, tests/constitution, tests/fixtures)
-- [ ] T002 Initialize the uv project in `pyproject.toml` with runtime deps (httpx, exchange_calendars, typer, rich, pandas) and dev deps (pytest, pytest-cov, hypothesis, ruff, mypy); commit `uv.lock`
-- [ ] T003 [P] Configure ruff and mypy in `pyproject.toml` with strict settings for `src/goldbot/domain/`
-- [ ] T004 [P] Configure pytest in `pyproject.toml`: test paths, `constitution` marker, coverage thresholds
-- [ ] T005 [P] Add `.env.example` documenting `ALPACA_API_KEY` / `ALPACA_API_SECRET` as optional and needed only for the 4-hour cadence
+- [X] T001 Create the directory tree from plan.md under `src/goldbot/` and `tests/` (domain, data, strategy, risk, execution, engine, journal, lessons, cli; tests/unit, tests/integration, tests/constitution, tests/fixtures)
+- [X] T002 Initialize the uv project in `pyproject.toml` with runtime deps (httpx, exchange_calendars, typer, rich, pandas) and dev deps (pytest, pytest-cov, hypothesis, ruff, mypy); commit `uv.lock`
+- [X] T003 [P] Configure ruff and mypy in `pyproject.toml` with strict settings for `src/goldbot/domain/`
+- [X] T004 [P] Configure pytest in `pyproject.toml`: test paths, `constitution` marker, coverage thresholds
+- [X] T005 [P] Add `.env.example` documenting `ALPACA_API_KEY` / `ALPACA_API_SECRET` as optional and needed only for the 4-hour cadence
 
 ---
 
@@ -49,45 +49,45 @@ constitution's guarantees are enforced here or nowhere.
 
 ### Domain value types
 
-- [ ] T006 Pin a single `decimal.Context` and define Price/Cash/Shares helpers in `src/goldbot/domain/money.py`
-- [ ] T007 [P] Define the exception hierarchy (`LookAheadError`, `GuardViolation`, `DataIntegrityError`, `HaltRequired`) in `src/goldbot/domain/errors.py`
-- [ ] T008 [P] Implement `Bar` with OHLC validation and `MarketView` that raises `LookAheadError` past `as_of` in `src/goldbot/domain/bar.py`
-- [ ] T009 [P] Implement `Verdict` with non-empty statement/evidence/principle validation in `src/goldbot/domain/verdict.py`
-- [ ] T010 [P] Implement `Instrument` and the allow-list container in `src/goldbot/domain/instrument.py`
-- [ ] T011 [P] Implement `RiskEnvelope` with content-hash versioning in `src/goldbot/domain/envelope.py`
-- [ ] T012 Implement `Action`, `Constraint`, `EntryPlan`, and `Decision` — refusing construction without verdicts — in `src/goldbot/domain/decision.py` (depends on T009)
-- [ ] T013 Implement `Side`, `Costs`, `Authorization` (no public constructor), `Order`, and `Fill` in `src/goldbot/domain/order.py` (depends on T012)
-- [ ] T014 [P] Implement frozen `Position` and `Trade` with `ExitReason`/`LossClass`, deliberately omitting widen-stop, remove-stop, and add-shares operations, in `src/goldbot/domain/position.py`
-- [ ] T015 [P] Add small committed OHLCV fixtures covering a trend, a drawdown, a gap-through-stop, and a data gap in `tests/fixtures/`
+- [X] T006 Pin a single `decimal.Context` and define Price/Cash/Shares helpers in `src/goldbot/domain/money.py`
+- [X] T007 [P] Define the exception hierarchy (`LookAheadError`, `GuardViolation`, `DataIntegrityError`, `HaltRequired`) in `src/goldbot/domain/errors.py`
+- [X] T008 [P] Implement `Bar` with OHLC validation and `MarketView` that raises `LookAheadError` past `as_of` in `src/goldbot/domain/bar.py`
+- [X] T009 [P] Implement `Verdict` with non-empty statement/evidence/principle validation in `src/goldbot/domain/verdict.py`
+- [X] T010 [P] Implement `Instrument` and the allow-list container in `src/goldbot/domain/instrument.py`
+- [X] T011 [P] Implement `RiskEnvelope` with content-hash versioning in `src/goldbot/domain/envelope.py`
+- [X] T012 Implement `Action`, `Constraint`, `EntryPlan`, and `Decision` — refusing construction without verdicts — in `src/goldbot/domain/decision.py` (depends on T009)
+- [X] T013 Implement `Side`, `Costs`, `Authorization` (no public constructor), `Order`, and `Fill` in `src/goldbot/domain/order.py` (depends on T012)
+- [X] T014 [P] Implement frozen `Position` and `Trade` with `ExitReason`/`LossClass`, deliberately omitting widen-stop, remove-stop, and add-shares operations, in `src/goldbot/domain/position.py`
+- [X] T015 [P] Add small committed OHLCV fixtures covering a trend, a drawdown, a gap-through-stop, and a data gap in `tests/fixtures/`
 
 ### Constitution guard tests
 
-- [ ] T016 [P] Guard test asserting a rule reaching past the decision bar raises, in `tests/constitution/test_no_lookahead.py`
-- [ ] T017 [P] Guard test asserting `domain/` imports no other layer, in `tests/constitution/test_layering.py`
-- [ ] T018 [P] Guard test asserting no wall-clock read is reachable from `strategy/`, `risk/`, or `engine/`, in `tests/constitution/test_no_wallclock.py`
-- [ ] T019 [P] Guard test asserting no brokerage trading SDK appears in `uv.lock`, in `tests/constitution/test_no_live_broker.py`
-- [ ] T020 [P] Guard test asserting no I/O or randomness is reachable from `strategy/`, in `tests/constitution/test_rules_are_pure.py`
+- [X] T016 [P] Guard test asserting a rule reaching past the decision bar raises, in `tests/constitution/test_no_lookahead.py`
+- [X] T017 [P] Guard test asserting `domain/` imports no other layer, in `tests/constitution/test_layering.py`
+- [X] T018 [P] Guard test asserting no wall-clock read is reachable from `strategy/`, `risk/`, or `engine/`, in `tests/constitution/test_no_wallclock.py`
+- [X] T019 [P] Guard test asserting no brokerage trading SDK appears in `uv.lock`, in `tests/constitution/test_no_live_broker.py`
+- [X] T020 [P] Guard test asserting no I/O or randomness is reachable from `strategy/`, in `tests/constitution/test_rules_are_pure.py`
 
 ### Risk layer (TDD — red phase first)
 
-- [ ] T021 [P] **MUST FAIL FIRST** — rejection tests for allow-list violation, missing stop, stop on wrong side, oversized risk, widen-stop attempt, and average-down attempt, in `tests/unit/risk/test_rejections.py`
-- [ ] T022 [P] **MUST FAIL FIRST** — guard test asserting `Authorization` cannot be constructed outside `RiskGate`, in `tests/constitution/test_authorization_unforgeable.py`
-- [ ] T023 Implement whole-share sizing recording the binding constraint (risk budget vs available cash) in `src/goldbot/risk/sizing.py`
-- [ ] T024 Implement per-trade risk, concurrent-position, and allow-list limit checks in `src/goldbot/risk/limits.py`
-- [ ] T025 Implement `RiskGate.authorize` as the sole source of `Authorization`, returning an explanatory `Rejection` on failure, in `src/goldbot/risk/gate.py` (depends on T023, T024)
-- [ ] T026 [P] Hypothesis property tests asserting sized risk never exceeds the envelope for any price/stop/equity combination, in `tests/unit/risk/test_sizing_properties.py`
+- [X] T021 [P] **MUST FAIL FIRST** — rejection tests for allow-list violation, missing stop, stop on wrong side, oversized risk, widen-stop attempt, and average-down attempt, in `tests/unit/risk/test_rejections.py`
+- [X] T022 [P] **MUST FAIL FIRST** — guard test asserting `Authorization` cannot be constructed outside `RiskGate`, in `tests/constitution/test_authorization_unforgeable.py`
+- [X] T023 Implement whole-share sizing recording the binding constraint (risk budget vs available cash) in `src/goldbot/risk/sizing.py`
+- [X] T024 Implement per-trade risk, concurrent-position, and allow-list limit checks in `src/goldbot/risk/limits.py`
+- [X] T025 Implement `RiskGate.authorize` as the sole source of `Authorization`, returning an explanatory `Rejection` on failure, in `src/goldbot/risk/gate.py` (depends on T023, T024)
+- [X] T026 [P] Hypothesis property tests asserting sized risk never exceeds the envelope for any price/stop/equity combination, in `tests/unit/risk/test_sizing_properties.py`
 
 ### Audit store
 
-- [ ] T027 Write the SQLite schema with `BEFORE UPDATE`/`BEFORE DELETE` abort triggers on every record table and `CHECK (simulated = 1)` on orders, in `src/goldbot/journal/schema.sql`
-- [ ] T028 [P] **MUST FAIL FIRST** — guard test asserting UPDATE and DELETE raise on every record table, in `tests/constitution/test_append_only.py`
-- [ ] T029 Implement `AuditStore` writers and readers (`record_decision`, `record_fill`, `record_violation`, `decisions_on`) storing decimals as TEXT, in `src/goldbot/journal/store.py`
+- [X] T027 Write the SQLite schema with `BEFORE UPDATE`/`BEFORE DELETE` abort triggers on every record table and `CHECK (simulated = 1)` on orders, in `src/goldbot/journal/schema.sql`
+- [X] T028 [P] **MUST FAIL FIRST** — guard test asserting UPDATE and DELETE raise on every record table, in `tests/constitution/test_append_only.py`
+- [X] T029 Implement `AuditStore` writers and readers (`record_decision`, `record_fill`, `record_violation`, `decisions_on`) storing decimals as TEXT, in `src/goldbot/journal/store.py`
 
 ### Configuration
 
-- [ ] T030 Implement config loading into `StrategyConfig`, `RiskEnvelope`, and the instrument allow-list, with content hashing, in `src/goldbot/config.py`
-- [ ] T031 [P] Write the baseline strategy configuration in `config/baseline.toml`
-- [ ] T032 [P] Write a deliberately invalid configuration requesting a non-gold symbol, a stopless entry, and an oversized position in `config/violations-probe.toml`
+- [X] T030 Implement config loading into `StrategyConfig`, `RiskEnvelope`, and the instrument allow-list, with content hashing, in `src/goldbot/config.py`
+- [X] T031 [P] Write the baseline strategy configuration in `config/baseline.toml`
+- [X] T032 [P] Write a deliberately invalid configuration requesting a non-gold symbol, a stopless entry, and an oversized position in `config/violations-probe.toml`
 
 **Checkpoint**: Domain, risk gate, and audit store are in place. User story work can begin.
 
@@ -104,52 +104,52 @@ decision has an explanation, and the report accounts for spread, commission, and
 
 ### Data pipeline
 
-- [ ] T033 [P] [US1] Implement manifest write and SHA-256 verification, refusing on mismatch, in `src/goldbot/data/snapshot.py`
-- [ ] T034 [P] [US1] Implement the Stooq end-of-day source in `src/goldbot/data/sources/stooq.py`
-- [ ] T035 [US1] Implement the `DataFeed` protocol, `HistoricalFeed`, and explicit `DataGap` emission without interpolation, in `src/goldbot/data/feed.py` (depends on T033)
-- [ ] T036 [P] [US1] Integration test asserting a corrupted snapshot exits 3 with the digest named, in `tests/integration/test_snapshot_integrity.py`
+- [X] T033 [P] [US1] Implement manifest write and SHA-256 verification, refusing on mismatch, in `src/goldbot/data/snapshot.py`
+- [X] T034 [P] [US1] Implement the Stooq end-of-day source in `src/goldbot/data/sources/stooq.py`
+- [X] T035 [US1] Implement the `DataFeed` protocol, `HistoricalFeed`, and explicit `DataGap` emission without interpolation, in `src/goldbot/data/feed.py` (depends on T033)
+- [X] T036 [P] [US1] Integration test asserting a corrupted snapshot exits 3 with the digest named, in `tests/integration/test_snapshot_integrity.py`
 
 ### Strategy rules and their lessons
 
-- [ ] T037 [P] [US1] Implement Decimal SMA, ATR, and rate-of-change over an explicit bar window in `src/goldbot/strategy/indicators.py`
-- [ ] T038 [US1] Define the `Rule` protocol and the rule registry in `src/goldbot/strategy/rule.py`
-- [ ] T039 [P] [US1] Implement the trend filter rule returning a `Verdict` in `src/goldbot/strategy/rules/trend_filter.py`
-- [ ] T040 [P] [US1] Write the trend-alignment lesson in `src/goldbot/lessons/content/trend-alignment.md`
-- [ ] T041 [P] [US1] Implement the entry trigger rule in `src/goldbot/strategy/rules/entry_trigger.py`
-- [ ] T042 [P] [US1] Write the momentum-confirmation lesson in `src/goldbot/lessons/content/momentum-confirmation.md`
-- [ ] T043 [P] [US1] Implement the ATR-based stop placement rule in `src/goldbot/strategy/rules/atr_stop.py`
-- [ ] T044 [P] [US1] Write the volatility-based-stops lesson in `src/goldbot/lessons/content/volatility-based-stops.md`
-- [ ] T045 [P] [US1] Implement the scheduled-event blackout rule in `src/goldbot/strategy/rules/event_blackout.py`
-- [ ] T046 [P] [US1] Write the event-risk lesson in `src/goldbot/lessons/content/event-risk.md`
-- [ ] T047 [US1] Implement setup composition that evaluates every rule without short-circuiting in `src/goldbot/strategy/setup.py` (depends on T038–T045)
-- [ ] T048 [P] [US1] Guard test asserting every principle emitted by a registered rule has a lesson file, in `tests/constitution/test_no_orphan_principles.py`
+- [X] T037 [P] [US1] Implement Decimal SMA, ATR, and rate-of-change over an explicit bar window in `src/goldbot/strategy/indicators.py`
+- [X] T038 [US1] Define the `Rule` protocol and the rule registry in `src/goldbot/strategy/rule.py`
+- [X] T039 [P] [US1] Implement the trend filter rule returning a `Verdict` in `src/goldbot/strategy/rules/trend_filter.py`
+- [X] T040 [P] [US1] Write the trend-alignment lesson in `src/goldbot/lessons/content/trend-alignment.md`
+- [X] T041 [P] [US1] Implement the entry trigger rule in `src/goldbot/strategy/rules/entry_trigger.py`
+- [X] T042 [P] [US1] Write the momentum-confirmation lesson in `src/goldbot/lessons/content/momentum-confirmation.md`
+- [X] T043 [P] [US1] Implement the ATR-based stop placement rule in `src/goldbot/strategy/rules/atr_stop.py`
+- [X] T044 [P] [US1] Write the volatility-based-stops lesson in `src/goldbot/lessons/content/volatility-based-stops.md`
+- [X] T045 [P] [US1] Implement the scheduled-event blackout rule in `src/goldbot/strategy/rules/event_blackout.py`
+- [X] T046 [P] [US1] Write the event-risk lesson in `src/goldbot/lessons/content/event-risk.md`
+- [X] T047 [US1] Implement setup composition that evaluates every rule without short-circuiting in `src/goldbot/strategy/setup.py` (depends on T038–T045)
+- [X] T048 [P] [US1] Guard test asserting every principle emitted by a registered rule has a lesson file, in `tests/constitution/test_no_orphan_principles.py`
 
 ### Explanation and execution
 
-- [ ] T049 [US1] Implement the `Explainer` rendering only from `decision.verdicts`, naming every failed verdict on a SKIP, in `src/goldbot/journal/explain.py`
-- [ ] T050 [US1] Implement `SimulatedBroker` with spread, commission, and slippage modelling plus gap-through-stop fills recording `risk_overrun`, in `src/goldbot/execution/simulated.py`
-- [ ] T051 [US1] Implement `HistoricalClock` deriving time from the bar sequence in `src/goldbot/engine/clock.py`
-- [ ] T052 [US1] Implement the decision loop emitting exactly one `Decision` per completed bar and writing it before acting, in `src/goldbot/engine/loop.py` (depends on T047, T049, T050, T051)
+- [X] T049 [US1] Implement the `Explainer` rendering only from `decision.verdicts`, naming every failed verdict on a SKIP, in `src/goldbot/journal/explain.py`
+- [X] T050 [US1] Implement `SimulatedBroker` with spread, commission, and slippage modelling plus gap-through-stop fills recording `risk_overrun`, in `src/goldbot/execution/simulated.py`
+- [X] T051 [US1] Implement `HistoricalClock` deriving time from the bar sequence in `src/goldbot/engine/clock.py`
+- [X] T052 [US1] Implement the decision loop emitting exactly one `Decision` per completed bar and writing it before acting, in `src/goldbot/engine/loop.py` (depends on T047, T049, T050, T051)
 
 ### Reporting
 
-- [ ] T053 [P] [US1] Implement the Markdown journal renderer and Rich on-screen output in `src/goldbot/journal/render.py`
-- [ ] T054 [P] [US1] Implement `PerformanceReport` exposing only the full metric set — expectancy, win rate, average R, max drawdown, trade count, net return, gap-overrun count, disclosed expense ratio — in `src/goldbot/journal/report.py`
+- [X] T053 [P] [US1] Implement the Markdown journal renderer and Rich on-screen output in `src/goldbot/journal/render.py`
+- [X] T054 [P] [US1] Implement `PerformanceReport` exposing only the full metric set — expectancy, win rate, average R, max drawdown, trade count, net return, gap-overrun count, disclosed expense ratio — in `src/goldbot/journal/report.py`
 
 ### Command line
 
-- [ ] T055 [US1] Implement the Typer application, `--version` reporting `execution: simulated only`, and the exit-code mapping from contracts/cli.md, in `src/goldbot/cli/main.py`
-- [ ] T056 [P] [US1] Implement `data pull` and `data verify` in `src/goldbot/cli/data.py`
-- [ ] T057 [P] [US1] Implement `backtest` in `src/goldbot/cli/backtest.py`
-- [ ] T058 [P] [US1] Implement `journal show` and `journal why` in `src/goldbot/cli/journal.py`
-- [ ] T059 [P] [US1] Implement `report` in `src/goldbot/cli/report.py`
+- [X] T055 [US1] Implement the Typer application, `--version` reporting `execution: simulated only`, and the exit-code mapping from contracts/cli.md, in `src/goldbot/cli/main.py`
+- [X] T056 [P] [US1] Implement `data pull` and `data verify` in `src/goldbot/cli/data.py`
+- [X] T057 [P] [US1] Implement `backtest` in `src/goldbot/cli/backtest.py`
+- [X] T058 [P] [US1] Implement `journal show` and `journal why` in `src/goldbot/cli/journal.py`
+- [X] T059 [P] [US1] Implement `report` in `src/goldbot/cli/report.py`
 
 ### Story validation
 
-- [ ] T060 [P] [US1] Integration test asserting decision count equals evaluated-bar count, in `tests/integration/test_decision_coverage.py`
-- [ ] T061 [P] [US1] Integration test asserting two runs of the same snapshot and config produce byte-identical journals, in `tests/integration/test_reproducibility.py`
-- [ ] T062 [P] [US1] Integration test asserting reported costs are non-zero and itemised, in `tests/integration/test_costs_modelled.py`
-- [ ] T063 [P] [US1] Integration test running `config/violations-probe.toml` and asserting exit 4 with one `violations` row per rejected attempt, in `tests/integration/test_violations_probe.py`
+- [X] T060 [P] [US1] Integration test asserting decision count equals evaluated-bar count, in `tests/integration/test_decision_coverage.py`
+- [X] T061 [P] [US1] Integration test asserting two runs of the same snapshot and config produce byte-identical journals, in `tests/integration/test_reproducibility.py`
+- [X] T062 [P] [US1] Integration test asserting reported costs are non-zero and itemised, in `tests/integration/test_costs_modelled.py`
+- [X] T063 [P] [US1] Integration test running `config/violations-probe.toml` and asserting exit 4 with one `violations` row per rejected attempt, in `tests/integration/test_violations_probe.py`
 
 **Checkpoint**: User Story 1 is fully functional. This is the MVP — a system that teaches you the
 strategy with zero capital at risk.
