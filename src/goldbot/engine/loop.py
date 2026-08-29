@@ -91,6 +91,7 @@ class DecisionLoop:
         run_id: str,
         store: AuditStore | None = None,
         halt_resumes_next_session: bool = True,
+        halt_cleared_after: date | None = None,
     ) -> None:
         self.config = config
         self.bars = bars
@@ -102,6 +103,10 @@ class DecisionLoop:
         #: the next session and the event is recorded. Paper mode passes False
         #: and requires `goldbot paper resume` (FR-014).
         self.halt_resumes_next_session = halt_resumes_next_session
+        #: Set by `goldbot paper resume`. A paper session is reconstructed by
+        #: replaying history, so an operator's resume has to be a durable fact
+        #: about a date rather than a flag flipped in a running process.
+        self.halt_cleared_after = halt_cleared_after
 
         params = config.strategy
         self.entry_setup = EntrySetup(
@@ -138,7 +143,10 @@ class DecisionLoop:
                 # New session. In backtest mode the halt lifts here, which
                 # stands in for the operator returning the following morning.
                 realised_today = ZERO
-                if halted and self.halt_resumes_next_session:
+                resumed_by_operator = (
+                    self.halt_cleared_after is not None and today > self.halt_cleared_after
+                )
+                if halted and (self.halt_resumes_next_session or resumed_by_operator):
                     halted = False
                     halt_reason = ""
             session = today
